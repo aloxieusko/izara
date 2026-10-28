@@ -39,10 +39,37 @@ const $=id=>document.getElementById(id), fileInput=$('excelFile'), sheetSelect=$
 const fmt=v=>(v===null||v===undefined||v==='')?'—':Number(v).toLocaleString('es-ES',{maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const norm=s=>String(s??'').trim().toLocaleLowerCase('es');
+const SPECIAL_DEGREE_SUBJECTS={
+ 'LH/HH':[
+  'Minor – Didactica de segundas lenguas a inmigrantes',
+  'Minor – Hizkuntza estandar eta aldaerak eskolan',
+  'Minor – Euskal Herriko hizkuntzak eta gizartea',
+  'Minor – Hizkuntzen didaktikarako ikuspegi berriak',
+  'Minor – El proyecto lingüístico de centro',
+  'Minor – Desarrollo de la Competencia Lingüística en Lengua Inglesa',
+  'Minor – Competencia Comunicativa en Lengua Inglesa',
+  'Minor – Didáctica de la Lengua Extranjera: Inglés',
+  'Minor – Inglés para el aula de Infantil y Primaria',
+  'Minor – 2ª Lengua Extranjera: Francés',
+  'Minor – Lenguas e innovación en la escuela',
+  'Minor – Recursos para la Enseñanza-Aprendizaje de la Lengua y Literatura',
+  'Hautazko – Euskararen araudia eta erabilpena',
+  'Hautazko – Komunikazioa euskaraz: eskola-gizartea'
+ ],
+ 'HH':['Minor – Hizkuntzak eta berrikuntza HH geletan'],
+ 'GH':['Minor – Análisis crítico de los medios de comunicación']
+};
+const normalizedSpecialDegrees=new Map(Object.entries(SPECIAL_DEGREE_SUBJECTS).flatMap(([degree,subjects])=>subjects.map(subject=>[norm(subject).replace(/[–—-]/g,'-').replace(/\s+/g,' '),degree])));
+function specialDegreeForSubject(subject){return normalizedSpecialDegrees.get(norm(subject).replace(/[–—-]/g,'-').replace(/\s+/g,' '))||'';}
 function splitDegreeSubject(value){
  const original=String(value??'').trim();
+ const combinedPracticum=original.match(/^\s*(Practicum\s+II\s+eta\s+III)\s+GH\s*[–—-]\s*([^\d]+?\s*\d+)\s*$/i);
+ if(combinedPracticum)return{degree:'GH',subject:`${combinedPracticum[1]} (${combinedPracticum[2].trim()})`};
+ const practicum=original.match(/^\s*(Practicum\s+(?:I|II|III))\s+(HH|LH|GH)\s*[–—-]\s*((?:eng|eus|cast)\s*\d+)\s*$/i);
+ if(practicum)return{degree:practicum[2].toUpperCase(),subject:`${practicum[1]} (${practicum[3]})`};
  const match=original.match(/^\s*(HH|LH|GH)\s*[–—-]\s*(.*)$/i);
- return match?{degree:match[1].toUpperCase(),subject:match[2].trim()}:{degree:'—',subject:original};
+ if(match)return{degree:match[1].toUpperCase(),subject:match[2].trim()};
+ return{degree:specialDegreeForSubject(original)||'—',subject:original};
 }
 function setStatus(text,type=''){statusEl.textContent=text;statusEl.className='status'+(type?' '+type:'');}
 function cell(ws,r,c){const a=XLSX.utils.encode_cell({r:r-1,c:c-1});return ws[a]?ws[a].v:null;}
