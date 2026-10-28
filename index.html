@@ -102,7 +102,7 @@ function parseSheet(ws,name){
  for(let r=meta.headerRow+1;r<stop;r++){
   if(rowContains(ws,r,'FAKULTATEKO ORDEZKARITZAK'))management=true;
   const rawSubject=String(cell(ws,r,meta.subject)??'').trim(); if(!rawSubject)continue;
-  const parsedSubject=splitDegreeSubject(rawSubject), subject=parsedSubject.subject, degree=parsedSubject.degree;
+  const parsedSubject=splitDegreeSubject(rawSubject), subject=parsedSubject.subject.replace(/\s+(?:31|32)\s*$/,'').trim(), degree=parsedSubject.degree;
   const sourceLabel=norm(cell(ws,r,1));
   if(sourceLabel.startsWith('edr_pda')||sourceLabel.startsWith('esleitu daitekeena')||sourceLabel.startsWith('esleitutako dozentzia')||sourceLabel==='holgura')continue;
   const level=cell(ws,r,meta.level), semester=cell(ws,r,meta.semester), group=cell(ws,r,meta.group), code=cell(ws,r,meta.code);
