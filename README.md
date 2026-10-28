@@ -1,0 +1,2 @@
+# izara
+Irakaskuntza izara
